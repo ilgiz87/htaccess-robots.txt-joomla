@@ -77,6 +77,39 @@
     #   </RequireAll>
     # </IfModule>
     ```
+### Редирект с http на https для всего сайта для хостинга Timeweb
+
+У хостинга Timeweb 3 разных варианта которые нужно подбирать
+
+#### Вариант 1
+```apache
+    RewriteCond %{SERVER_PORT} !^443$
+    RewriteRule .* https://%{SERVER_NAME}%{REQUEST_URI} [R=301,L]
+```
+#### Вариант 2
+```apache
+    RewriteCond %{HTTPS} =on
+    RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [QSA,L]
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+```
+
+#### Вариант 3
+```apache
+    RewriteEngine On
+    RewriteCond %{SERVER_PORT} !^443$
+    RewriteCond %{REQUEST_URI} =/page.php
+    RewriteRule .* https://%{SERVER_NAME}%{REQUEST_URI} [R,L]
+```
+
+> #### ⚠ ВНИМАНИЕ!
+> Условия редирект записывать в блоке IfModule, дабы избежать ошибок при выполнении файла htaccess.
+```apache
+    <IfModule mod_rewrite.c>
+
+    </IfModule>
+```
 ---
 
 ## robots.txt
