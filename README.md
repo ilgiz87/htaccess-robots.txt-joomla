@@ -25,7 +25,11 @@
 
 - Блокировка вредоносных ботов и сканеров
 ```text
-    RewriteCond %{HTTP_USER_AGENT} (ALittle[ ]Client|keys-so-bot|Go-http-client|masscan|nikto|sqlmap|nmap|scan|wpscan|acunetix|netsparker|nessus|openvas|metasploit|burpsuite|dirbuster|havij|zmeu|sqlninja|hydra|weevely|caidao|adminer|phpmyadmin|winhttp|HTTrack|clshttp|archiver|loader|email|harvest|extract|grab|miner|python-requests) [NC]
+    RewriteCond %{HTTP_USER_AGENT} (ALittle\sClient|keys-so-bot|Go-http-client|masscan|nikto|sqlmap|nmap|scan|wpscan) [NC,OR]
+    RewriteCond %{HTTP_USER_AGENT} (acunetix|netsparker|nessus|openvas|metasploit|burpsuite|dirbuster|havij) [NC,OR]
+    RewriteCond %{HTTP_USER_AGENT} (zmeu|sqlninja|hydra|weevely|caidao|adminer|phpmyadmin) [NC,OR]
+    RewriteCond %{HTTP_USER_AGENT} (winhttp|HTTrack|clshttp|archiver|loader|email|harvest) [NC,OR]
+    RewriteCond %{HTTP_USER_AGENT} (extract|grab|miner|python-requests) [NC]
     RewriteRule ^ - [F,L]
 ```
 
