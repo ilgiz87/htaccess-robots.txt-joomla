@@ -15,7 +15,7 @@
 Добавлено
 
 - Блокировка пустых User-Agent
-```text
+```apache
     RewriteCond %{HTTP_USER_AGENT} ^$ [OR]
     RewriteCond %{HTTP_USER_AGENT} ^\s+$ [OR]
     RewriteCond %{HTTP_USER_AGENT} ^- [OR] 
@@ -24,7 +24,7 @@
 ```
 
 - Блокировка вредоносных ботов и сканеров
-```text
+```apache
     RewriteCond %{HTTP_USER_AGENT} (ALittle\sClient|keys-so-bot|Go-http-client|masscan|nikto|sqlmap|nmap|scan|wpscan) [NC,OR]
     RewriteCond %{HTTP_USER_AGENT} (acunetix|netsparker|nessus|openvas|metasploit|burpsuite|dirbuster|havij) [NC,OR]
     RewriteCond %{HTTP_USER_AGENT} (zmeu|sqlninja|hydra|weevely|caidao|adminer|phpmyadmin) [NC,OR]
@@ -34,14 +34,14 @@
 ```
 
 - Блокировка доступа к системным файлам
-```text
+```apache
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^(.*/)?(\.|backup|dump|sql|config\.php|composer\.(json|lock)|package\.json)/ - [F,L,NC]
 ```
 
 - Защищает от атак типа **RFI** (Remote File Inclusion) и **LFI** (Local File Inclusion), которые могут использоваться для выполнения произвольного кода.
-```text
+```apache
     RewriteCond %{QUERY_STRING} (https?|ftp):(\/|%2F){2,} [NC,OR]
     RewriteCond %{QUERY_STRING} ^=(https?|ftp|php|file|data):? [NC,OR]
     RewriteCond %{QUERY_STRING} (\.\.\/|\.\.%2f|%2e%2e%2f|\.%2f) [NC]
@@ -50,7 +50,7 @@
 - Примеры, которые можно легко раскомментировать.
 
     - настройки распространенных перенаправлений
-    ```text
+    ```apache
     ## Редирект с www на без www
     # RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
     # RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
@@ -64,7 +64,7 @@
     ```
 
     - Блокировка IP-адресов
-    ```text
+    ```apache
     # <IfModule mod_authz_core.c>
     #   <RequireAll>
     #       Require all granted
@@ -121,7 +121,7 @@
 ### robots-mod.txt
 
 - Разрешенные боты
-```text
+```apache
     User-agent: Googlebot
     User-agent: Googlebot-Image
     User-agent: Googlebot-News
@@ -138,7 +138,7 @@
 ```
 
 - Правил для статических файлов
-```text
+```apache
     Allow: /*.jpg$
     Allow: /*.png$
     Allow: /*.gif$
@@ -151,7 +151,7 @@
 ```
 
 - Блокирует доступ к критическим файлам идиректориям:
-```text
+```apache
     Disallow: /configuration.php
     Disallow: /.htaccess
     Disallow: /error_log
