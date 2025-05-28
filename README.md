@@ -14,39 +14,49 @@
 
 Добавлено
 
-- Блокировка пустых User-Agent
+- Блокировка запросов без User-Agent или с подозрительными значениями
 ```apache
     RewriteCond %{HTTP_USER_AGENT} ^$ [OR]
-    RewriteCond %{HTTP_USER_AGENT} ^\s+$ [OR]
-    RewriteCond %{HTTP_USER_AGENT} ^- [OR] 
-    RewriteCond %{HTTP_USER_AGENT} ^-$
+    RewriteCond %{HTTP_USER_AGENT} ^-$ [OR]
+    RewriteCond %{HTTP_USER_AGENT} ^[\s\t\r\n]+$
     RewriteRule ^ - [F,L]
 ```
 
 - Блокировка вредоносных ботов и сканеров
 ```apache
-    RewriteCond %{HTTP_USER_AGENT} (ALittle\sClient|keys-so-bot|Go-http-client|masscan|nikto|sqlmap|nmap|scan|wpscan) [NC,OR]
-    RewriteCond %{HTTP_USER_AGENT} (acunetix|netsparker|nessus|openvas|metasploit|burpsuite|dirbuster|havij) [NC,OR]
-    RewriteCond %{HTTP_USER_AGENT} (zmeu|sqlninja|hydra|weevely|caidao|adminer|phpmyadmin) [NC,OR]
-    RewriteCond %{HTTP_USER_AGENT} (winhttp|HTTrack|clshttp|archiver|loader|email|harvest) [NC,OR]
-    RewriteCond %{HTTP_USER_AGENT} (extract|grab|miner|python-requests) [NC]
+    RewriteCond %{HTTP_USER_AGENT} (masscan|nikto|sqlmap|nmap|wpscan|dirbuster|havij) [NC,OR]
+    RewriteCond %{HTTP_USER_AGENT} (acunetix|netsparker|nessus|openvas|metasploit) [NC,OR]
+    RewriteCond %{HTTP_USER_AGENT} (burpsuite|weevely|caidao|adminer|hydra|zmeu) [NC]
     RewriteRule ^ - [F,L]
 ```
 
-- Блокировка доступа к системным файлам
+- Блокировка прямого доступа к конфигурационным файлам
 ```apache
-    RewriteCond %{REQUEST_FILENAME} -f [OR]
-    RewriteCond %{REQUEST_FILENAME} -d
-    RewriteRule ^(.*/)?(\.|backup|dump|sql|config\.php|composer\.(json|lock)|package\.json)/ - [F,L,NC]
+    RewriteRule ^(config\.php|composer\.(json|lock)|package\.json|\.env)$ - [F,L,NC]
 ```
 
-- Защищает от атак типа **RFI** (Remote File Inclusion) и **LFI** (Local File Inclusion), которые могут использоваться для выполнения произвольного кода.
+- Блокировка SQL-инъекций
 ```apache
-    RewriteCond %{QUERY_STRING} (https?|ftp):(\/|%2F){2,} [NC,OR]
-    RewriteCond %{QUERY_STRING} ^=(https?|ftp|php|file|data):? [NC,OR]
-    RewriteCond %{QUERY_STRING} (\.\.\/|\.\.%2f|%2e%2e%2f|\.%2f) [NC]
-    RewriteRule .* - [F,L]
+    RewriteCond %{QUERY_STRING} \b(unions?|drop|delete|insert|update|alter|truncate|exec|execute|load_file|outfile|benchmark)\s+([a-zA-Z0-9_\*]+) [NC,OR]
+    RewriteCond %{QUERY_STRING} ([;'"<>])+\s*(unions?|select|drop|delete|insert|update|exec|execute) [NC]
+    RewriteRule ^ - [F,L]
 ```
+
+- Блокировка XSS и JS-вставок
+```apache
+    RewriteCond %{QUERY_STRING} (eval$|base64_decode|javascript:|on(error|load|click|submit)=|alert$|script|iframe|frame|document\.cookie|window\.location|expression\s*$) [NC]
+    RewriteRule ^ - [F,L]
+```
+
+- Блокировка LFI/RFI
+```apache
+    RewriteCond %{QUERY_STRING} (\.\./|%2e%2e|%00) [NC,OR]
+    RewriteCond %{QUERY_STRING} ^=(https?|ftp|php|file|data): [NC,OR]
+    RewriteCond %{QUERY_STRING} ^\w+=[a-z0-9+.-]+:// [NC,OR]
+    RewriteCond %{QUERY_STRING} (etc/passwd|win\.ini|boot\.ini) [NC]
+    RewriteRule ^ - [F,L]
+```
+
 - Примеры, которые можно легко раскомментировать.
 
     - настройки распространенных перенаправлений
@@ -120,42 +130,9 @@
 
 ### robots-mod.txt
 
-- Разрешенные боты
-```apache
-    User-agent: Googlebot
-    User-agent: Googlebot-Image
-    User-agent: Googlebot-News
-    User-agent: Bingbot
-    User-agent: MSNBot 
-    User-agent: DuckDuckBot
-    User-agent: Yandex
-    User-agent: YandexBot
-    User-agent: YandexAccessibilityBot
-    User-agent: YandexMobileBot
-    User-agent: YandexMetrika
-    User-agent: YandexImages
-    Allow: /
-```
+После общения с более опытными ребятами решил оставить оригинальный вариант
+только добавил указание карты сайта
 
-- Правил для статических файлов
 ```apache
-    Allow: /*.jpg$
-    Allow: /*.png$
-    Allow: /*.gif$
-    Allow: /*.webp$
-    Allow: /*.svg$
-    Allow: /*.woff$
-    Allow: /*.woff2$
-    Allow: /*.ttf$
-    Allow: /*.eot$
+   Sitemap: https://yourdomain.com/sitemap.xml 
 ```
-
-- Блокирует доступ к критическим файлам идиректориям:
-```apache
-    Disallow: /configuration.php
-    Disallow: /.htaccess
-    Disallow: /error_log
-    Disallow: /index.php?option=com_search
-    Disallow: /component/mailto/
-```
-

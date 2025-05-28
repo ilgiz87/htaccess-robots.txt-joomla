@@ -9,22 +9,7 @@
 # Для получения дополнительной информации о стандарте robots.txt см.:
 # https://www.robotstxt.org/orig.html
 
-# Разрешаем доступ только авторизованным поисковым ботам
-User-agent: Googlebot
-User-agent: Googlebot-Image
-User-agent: Googlebot-News
-User-agent: Bingbot
-User-agent: MSNBot 
-User-agent: DuckDuckBot
-User-agent: Yandex
-User-agent: YandexBot
-User-agent: YandexAccessibilityBot
-User-agent: YandexMobileBot
-User-agent: YandexMetrika
-User-agent: YandexImages
-Allow: /
-
-# Блокируем служебные директории и файлы
+User-agent: *
 Disallow: /administrator/
 Disallow: /api/
 Disallow: /bin/
@@ -40,27 +25,6 @@ Disallow: /logs/
 Disallow: /modules/
 Disallow: /plugins/
 Disallow: /tmp/
-Disallow: /configuration.php
-Disallow: /.htaccess
-Disallow: /error_log
-Disallow: /php.ini
-Disallow: /web.config.txt
-Disallow: /index.php?option=com_search
-Disallow: /index.php?option=com_users
-Disallow: /component/mailto/
-Disallow: /component/tags/
 
-# Разрешаем доступ к статическим файлам 
-Allow: /*.jpg$
-Allow: /*.png$
-Allow: /*.gif$
-Allow: /*.webp$
-Allow: /*.svg$
-Allow: /*.woff$
-Allow: /*.woff2$
-Allow: /*.ttf$
-Allow: /*.eot$
-
-# Блокируем все остальные боты
-User-agent: *
-Disallow: /
+# Указание карты сайта
+Sitemap: https://yourdomain.com/sitemap.xml 

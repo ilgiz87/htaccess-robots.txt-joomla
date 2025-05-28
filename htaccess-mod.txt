@@ -75,29 +75,21 @@ Options -Indexes
 <IfModule mod_rewrite.c>
 	RewriteEngine On
 
-    # Блокировка пустых User-Agent
-    # ========================
+   # Блокировка запросов без User-Agent или с подозрительными значениями
     RewriteCond %{HTTP_USER_AGENT} ^$ [OR]
-    RewriteCond %{HTTP_USER_AGENT} ^\s+$ [OR]
-    RewriteCond %{HTTP_USER_AGENT} ^- [OR] 
-    RewriteCond %{HTTP_USER_AGENT} ^-$
+    RewriteCond %{HTTP_USER_AGENT} ^-$ [OR]
+    RewriteCond %{HTTP_USER_AGENT} ^[\s\t\r\n]+$
     RewriteRule ^ - [F,L]
 
-    # Блокировка вредоносных ботов и сканеров
-	# ========================
-    RewriteCond %{HTTP_USER_AGENT} (ALittle\sClient|keys-so-bot|Go-http-client|masscan|nikto|sqlmap|nmap|scan|wpscan) [NC,OR]
-    RewriteCond %{HTTP_USER_AGENT} (acunetix|netsparker|nessus|openvas|metasploit|burpsuite|dirbuster|havij) [NC,OR]
-    RewriteCond %{HTTP_USER_AGENT} (zmeu|sqlninja|hydra|weevely|caidao|adminer|phpmyadmin) [NC,OR]
-    RewriteCond %{HTTP_USER_AGENT} (winhttp|HTTrack|clshttp|archiver|loader|email|harvest) [NC,OR]
-    RewriteCond %{HTTP_USER_AGENT} (extract|grab|miner|python-requests) [NC]
+    # Блокировка известных вредоносных ботов и сканеров
+    RewriteCond %{HTTP_USER_AGENT} (masscan|nikto|sqlmap|nmap|wpscan|dirbuster|havij) [NC,OR]
+    RewriteCond %{HTTP_USER_AGENT} (acunetix|netsparker|nessus|openvas|metasploit) [NC,OR]
+    RewriteCond %{HTTP_USER_AGENT} (burpsuite|weevely|caidao|adminer|hydra|zmeu) [NC]
     RewriteRule ^ - [F,L]
 
-    # Блокировка доступа к скрытым и системным файлам/директориям
-    # ========================
-    RewriteCond %{REQUEST_FILENAME} -f [OR]
-    RewriteCond %{REQUEST_FILENAME} -d
-    RewriteRule ^(.*/)?(\.|backup|dump|sql|config\.php|composer\.(json|lock)|package\.json)/ - [F,L,NC]
-
+    #  Блокировка прямого доступа к конфигурационным файлам
+    RewriteRule ^(config\.php|composer\.(json|lock)|package\.json|\.env)$ - [F,L,NC]
+	
 	## Начало - Правила для блокировки распространенных атак.
 	# Если у вас возникли проблемы, закомментируйте следующие строки,
 	# добавив # в начало каждой.
@@ -115,19 +107,21 @@ Options -Indexes
 	RewriteRule .* index.php [F]
 	#
 
-    # Блокировка распространенных эксплоитов и SQL-инъекций 
-    # ========================
-    RewriteCond %{QUERY_STRING} ([;<>\'\"\)]|%0[AD]|%2[027]|%3[CE>]).*(\/\*|union|select|insert|update|delete|drop|alter|declare|script|iframe|frame) [NC,OR]
-    RewriteCond %{QUERY_STRING} (localhost|benchmark|eval\(|document\.cookie|mosconfig) [NC,OR]
-    RewriteCond %{QUERY_STRING} (PHP_(SELF|FEATURES)|HTTP_(USER_AGENT|REFERER)) [NC]
-    RewriteRule .* - [F,L]
+    # Блокировка SQL-инъекций
+    RewriteCond %{QUERY_STRING} \b(unions?|drop|delete|insert|update|alter|truncate|exec|execute|load_file|outfile|benchmark)\s+([a-zA-Z0-9_\*]+) [NC,OR]
+    RewriteCond %{QUERY_STRING} ([;'"<>])+\s*(unions?|select|drop|delete|insert|update|exec|execute) [NC]
+    RewriteRule ^ - [F,L]
 
-    # Защита от RFI (Remote File Inclusion) и LFI (Local File Inclusion)
-    # ========================
-    RewriteCond %{QUERY_STRING} (https?|ftp):(\/|%2F){2,} [NC,OR]
-    RewriteCond %{QUERY_STRING} ^=(https?|ftp|php|file|data):? [NC,OR]
-    RewriteCond %{QUERY_STRING} (\.\.\/|\.\.%2f|%2e%2e%2f|\.%2f) [NC]
-    RewriteRule .* - [F,L]
+    # Блокировка XSS и JS-вставок
+    RewriteCond %{QUERY_STRING} (eval$|base64_decode|javascript:|on(error|load|click|submit)=|alert$|script|iframe|frame|document\.cookie|window\.location|expression\s*$) [NC]
+    RewriteRule ^ - [F,L]
+
+    # Блокировка LFI/RFI
+    RewriteCond %{QUERY_STRING} (\.\./|%2e%2e|%00) [NC,OR]
+    RewriteCond %{QUERY_STRING} ^=(https?|ftp|php|file|data): [NC,OR]
+    RewriteCond %{QUERY_STRING} ^\w+=[a-z0-9+.-]+:// [NC,OR]
+    RewriteCond %{QUERY_STRING} (etc/passwd|win\.ini|boot\.ini) [NC]
+    RewriteRule ^ - [F,L]
 
 	## Конец - Правила для блокировки распространенных атак.
 
