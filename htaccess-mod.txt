@@ -74,6 +74,12 @@ Options -Indexes
 ## Эти директивы работают только при включенном модуле Apache mod_rewrite
 <IfModule mod_rewrite.c>
 	RewriteEngine On
+	# Запретить переходы с другого сайта
+	# RewriteCond %{HTTP_REFERER} site1.ru [NC,OR]
+	# RewriteCond %{HTTP_REFERER} site2.ru [NC,OR]
+	# RewriteCond %{HTTP_REFERER} site3.ru [NC,OR]
+	# RewriteRule .* - [F]
+
 
    # Блокировка запросов без User-Agent или с подозрительными значениями
     RewriteCond %{HTTP_USER_AGENT} ^$ [OR]
